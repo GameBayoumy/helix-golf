@@ -1,9 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import Editor from '@monaco-editor/react';
-import type { editor } from 'monaco-editor';
-import { loader } from '@monaco-editor/react';
 import { 
   Keyboard,
   X,
@@ -13,13 +10,6 @@ import {
   Braces,
   Undo
 } from 'lucide-react';
-
-// Configure Monaco loader for CDN
-loader.config({
-  paths: {
-    vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs'
-  }
-});
 
 interface HelixEditorProps {
   initialContent: string;
@@ -42,20 +32,32 @@ export default function HelixEditor({
   const [keystrokes, setKeystrokes] = useState(0);
   const [pendingCommand, setPendingCommand] = useState<string | null>(null);
   const [showKeyGuide, setShowKeyGuide] = useState(false);
-  const [editorLoaded, setEditorLoaded] = useState(false);
-  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [cursorPos, setCursorPos] = useState(0);
 
   useEffect(() => {
     setContent(initialContent);
   }, [initialContent]);
 
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+  // Focus textarea on mount
+  useEffect(() => {
+    textareaRef.current?.focus();
+  }, []);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (readOnly) return;
     
     setKeystrokes(prev => prev + 1);
     onKeystroke(e.key);
 
     if (mode === 'normal') {
+      // Movement keys
+      if ('hjkl'.includes(e.key)) {
+        e.preventDefault();
+        // Simulate movement (in real Helix this would move cursor)
+        return;
+      }
+      
       if (e.key === 'i') {
         e.preventDefault();
         setMode('insert');
@@ -66,7 +68,7 @@ export default function HelixEditor({
         e.preventDefault();
         setMode('match');
         setPendingCommand(null);
-      } else if ('hjklxXdcywbeWEB'.includes(e.key)) {
+      } else if ('xXdcywbeWEB'.includes(e.key)) {
         e.preventDefault();
       }
     } else if (mode === 'insert') {
@@ -80,35 +82,28 @@ export default function HelixEditor({
         setMode('normal');
       }
     } else if (mode === 'match') {
-      e.preventDefault();
-      if (e.key === 'i' || e.key === 'a') {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setMode('normal');
+        setPendingCommand(null);
+      } else if (e.key === 'i' || e.key === 'a') {
+        e.preventDefault();
         setPendingCommand(e.key);
-      } else if (e.key === 'Escape') {
-        setMode('normal');
-        setPendingCommand(null);
       } else if ('([{\'"])}'.includes(e.key) && pendingCommand) {
+        e.preventDefault();
         setMode('normal');
         setPendingCommand(null);
+      } else {
+        e.preventDefault();
       }
     }
   }, [mode, readOnly, onKeystroke, pendingCommand]);
 
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
-
-  const handleEditorChange = (value: string | undefined) => {
-    if (value !== undefined) {
-      setContent(value);
-      onContentChange(value);
-    }
-  };
-
-  const handleEditorMount = (editor: editor.IStandaloneCodeEditor) => {
-    editorRef.current = editor;
-    editor.focus();
-    setEditorLoaded(true);
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newContent = e.target.value;
+    setContent(newContent);
+    onContentChange(newContent);
+    setCursorPos(e.target.selectionStart);
   };
 
   const getModeColor = () => {
@@ -128,6 +123,9 @@ export default function HelixEditor({
     return mode.toUpperCase();
   };
 
+  // Calculate line numbers
+  const lines = content.split('\n');
+
   return (
     <div className="flex flex-col h-full bg-[#2d2a26]">
       {/* Header */}
@@ -138,13 +136,7 @@ export default function HelixEditor({
           </div>
           
           {pendingCommand && mode === 'match' && (
-            <span className="text-xs text-[#9a948e]">
-              Type delimiter
-            </span>
-          )}
-          
-          {!editorLoaded && (
-            <span className="text-xs text-[#9a948e]">Loading editor...</span>
+            <span className="text-xs text-[#9a948e]">Type delimiter</span>
           )}
         </div>
         
@@ -165,30 +157,32 @@ export default function HelixEditor({
       </div>
 
       {/* Editor */}
-      <div className="flex-1 relative">
-        <Editor
-          height="100%"
-          defaultLanguage="javascript"
+      <div className="flex-1 relative flex">
+        {/* Line numbers */}
+        <div className="w-12 bg-[#1a1a25] border-r border-[#3a3a3a] py-4 text-right select-none">
+          {lines.map((_, i) => (
+            <div 
+              key={i} 
+              className="px-2 text-xs text-[#6b6560] font-mono leading-6"
+            >
+              {i + 1}
+            </div>
+          ))}
+        </div>
+        
+        {/* Textarea */}
+        <textarea
+          ref={textareaRef}
           value={content}
-          onChange={handleEditorChange}
-          theme="vs-dark"
-          onMount={handleEditorMount}
-          options={{
-            readOnly,
-            minimap: { enabled: false },
-            lineNumbers: 'on',
-            roundedSelection: false,
-            scrollBeyondLastLine: false,
-            fontSize: 14,
-            fontFamily: 'JetBrains Mono, monospace',
-            padding: { top: 16, bottom: 16 },
-            automaticLayout: true,
-            contextmenu: false,
-            quickSuggestions: false,
-            suggestOnTriggerCharacters: false,
-            wordWrap: 'on',
-            renderLineHighlight: 'all',
-            lineHeight: 24,
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          readOnly={readOnly}
+          spellCheck={false}
+          className="flex-1 bg-[#2d2a26] text-[#faf8f5] p-4 font-mono text-sm resize-none outline-none border-none"
+          style={{ 
+            fontFamily: 'JetBrains Mono, monospace', 
+            lineHeight: '1.5',
+            tabSize: 2
           }}
         />
 

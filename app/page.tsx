@@ -140,11 +140,12 @@ export default function LandingPage() {
             {categories.map((cat, i) => {
               const Icon = cat.icon;
               const count = challenges.filter(c => c.category === cat.id).length;
+              const firstChallenge = challenges.find(c => c.category === cat.id);
               
               return (
                 <Link
                   key={cat.id}
-                  href={`/sandbox?category=${cat.id}`}
+                  href={firstChallenge ? `/challenge/${firstChallenge.id}` : '/sandbox'}
                   className="group card-editorial p-6 flex flex-col"
                 >
                   <div className="flex items-center justify-between mb-4">
