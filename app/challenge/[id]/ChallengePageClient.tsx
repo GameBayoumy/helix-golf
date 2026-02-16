@@ -37,7 +37,10 @@ export default function ChallengePageClient({ challengeId }: ChallengePageClient
   const [showHint, setShowHint] = useState(false);
 
   useEffect(() => {
+    console.log('Looking for challenge:', challengeId);
+    console.log('Available challenges:', challenges.map(c => c.id));
     const ch = getChallengeById(challengeId);
+    console.log('Found challenge:', ch);
     if (ch) {
       setChallenge(ch);
       setCurrentContent(ch.initial);
@@ -109,7 +112,21 @@ export default function ChallengePageClient({ challengeId }: ChallengePageClient
   if (!challenge) {
     return (
       <div className="min-h-screen bg-[#faf8f5] flex items-center justify-center">
-        <div className="text-[#6b6560]" style={{ fontFamily: 'var(--font-mono)' }}>Challenge not found</div>
+        <div className="text-center">
+          <div className="text-[#6b6560] mb-4" style={{ fontFamily: 'var(--font-mono)' }}>
+            Challenge "{challengeId}" not found
+          </div>
+          <div className="text-sm text-[#9a948e] mb-4">
+            Available: {challenges.slice(0, 5).map(c => c.id).join(', ')}...
+          </div>
+          <Link 
+            href="/" 
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[#2d2a26] text-white rounded-lg"
+          >
+            <ArrowLeft size={16} />
+            Back to Challenges
+          </Link>
+        </div>
       </div>
     );
   }
