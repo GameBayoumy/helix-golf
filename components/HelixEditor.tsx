@@ -3,17 +3,23 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Editor from '@monaco-editor/react';
 import type { editor } from 'monaco-editor';
+import { loader } from '@monaco-editor/react';
 import { 
   Keyboard,
   X,
-  Command,
+  Move,
   Target,
   Scissors,
   Braces,
-  Layers,
-  Undo,
-  Move
+  Undo
 } from 'lucide-react';
+
+// Configure Monaco loader for CDN
+loader.config({
+  paths: {
+    vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs'
+  }
+});
 
 interface HelixEditorProps {
   initialContent: string;
@@ -36,6 +42,7 @@ export default function HelixEditor({
   const [keystrokes, setKeystrokes] = useState(0);
   const [pendingCommand, setPendingCommand] = useState<string | null>(null);
   const [showKeyGuide, setShowKeyGuide] = useState(false);
+  const [editorLoaded, setEditorLoaded] = useState(false);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
 
   useEffect(() => {
@@ -45,11 +52,9 @@ export default function HelixEditor({
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (readOnly) return;
     
-    // Track keystroke
     setKeystrokes(prev => prev + 1);
     onKeystroke(e.key);
 
-    // Handle Helix-style keybindings
     if (mode === 'normal') {
       if (e.key === 'i') {
         e.preventDefault();
@@ -82,7 +87,6 @@ export default function HelixEditor({
         setMode('normal');
         setPendingCommand(null);
       } else if ('([{\'"])}'.includes(e.key) && pendingCommand) {
-        // Match command complete (e.g., mi()
         setMode('normal');
         setPendingCommand(null);
       }
@@ -99,6 +103,12 @@ export default function HelixEditor({
       setContent(value);
       onContentChange(value);
     }
+  };
+
+  const handleEditorMount = (editor: editor.IStandaloneCodeEditor) => {
+    editorRef.current = editor;
+    editor.focus();
+    setEditorLoaded(true);
   };
 
   const getModeColor = () => {
@@ -129,8 +139,12 @@ export default function HelixEditor({
           
           {pendingCommand && mode === 'match' && (
             <span className="text-xs text-[#9a948e]">
-              Type delimiter (e.g., parens, brackets, quotes)
+              Type delimiter
             </span>
+          )}
+          
+          {!editorLoaded && (
+            <span className="text-xs text-[#9a948e]">Loading editor...</span>
           )}
         </div>
         
@@ -154,10 +168,11 @@ export default function HelixEditor({
       <div className="flex-1 relative">
         <Editor
           height="100%"
-          defaultLanguage="plaintext"
+          defaultLanguage="javascript"
           value={content}
           onChange={handleEditorChange}
-          theme="hc-black"
+          theme="vs-dark"
+          onMount={handleEditorMount}
           options={{
             readOnly,
             minimap: { enabled: false },
@@ -174,11 +189,6 @@ export default function HelixEditor({
             wordWrap: 'on',
             renderLineHighlight: 'all',
             lineHeight: 24,
-          }}
-          onMount={(editor) => {
-            editorRef.current = editor;
-            // Focus editor on mount
-            editor.focus();
           }}
         />
 
