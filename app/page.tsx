@@ -2,6 +2,7 @@
 
 import { challenges } from '@/challenges';
 import Link from 'next/link';
+import InteractiveHeroDemo from '@/app/components/InteractiveHeroDemo';
 import { 
   Terminal, 
   Keyboard, 
@@ -100,64 +101,12 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Right Column - Visual */}
+            {/* Right Column - Interactive Demo */}
             <div className="lg:col-span-7 relative">
               <div className="grid-decoration absolute inset-0 opacity-50" />
               
               <div className="relative z-10">
-                <div className="terminal-warm max-w-lg ml-auto">
-                  <div className="terminal-header-warm">
-                    <div className="flex gap-2">
-                      <div className="terminal-dot red" />
-                      <div className="terminal-dot yellow" />
-                      <div className="terminal-dot green" />
-                    </div>
-                    <span className="text-sm text-[#9a948e] ml-4">challenge_01.rs</span>
-                  </div>
-                  
-                  <div className="p-6 font-mono text-sm text-[#faf8f5]">
-                    <div className="flex items-center gap-3 mb-4 text-[#9a948e]">
-                      <span className="text-[#7a9e7e]">NORMAL</span>
-                      <span>mi(</span>
-                      <span className="text-xs opacity-60">— select inside parens</span>
-                    </div>
-                    
-                    <div className="space-y-1">
-                      <div className="flex">
-                        <span className="text-[#6b6560] w-6">1</span>
-                        <span className="text-[#9a948e]">fn </span>
-                        <span className="text-[#d4a574]">greet</span>
-                        <span className="text-[#faf8f5]">(</span>
-                        <span className="bg-[#c4705a]/30 px-1 rounded">name</span>
-                        <span className="text-[#faf8f5]">) {}</span>
-                      </div>
-                      
-                      <div className="flex opacity-40">
-                        <span className="text-[#6b6560] w-6">2</span>
-                        <span>// Your move...</span>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-6 pt-4 border-t border-[#4a4540] flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-4">
-                        <span className="text-[#7a9e7e]">● 1 selection</span>
-                        <span className="text-[#9a948e]">4 chars selected</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Floating Key Hint */}
-                <div className="absolute -bottom-4 -left-4 bg-white border border-[#e8e3db] rounded-lg p-4 shadow-xl"
-                  style={{ transform: 'rotate(-2deg)' }}
-                >
-                  <p className="text-xs text-[#6b6560] mb-2">Next: wrap with quotes</p>
-                  <div className="flex items-center gap-2">
-                    <span className="key-physical">ms"</span>
-                    <span className="text-[#6b6560]">→</span>
-                    <span className="text-[#7a9e7e] font-mono">"name"</span>
-                  </div>
-                </div>
+                <InteractiveHeroDemo />
               </div>
             </div>
           </div>
