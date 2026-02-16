@@ -3,36 +3,16 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Editor from '@monaco-editor/react';
 import type { editor } from 'monaco-editor';
-import { motion } from 'framer-motion';
-import { HelixMode, Keystroke } from '@/types/challenge';
 import { 
-  Command, 
-  CornerDownLeft, 
-  Delete, 
-  ArrowLeft, 
-  ArrowRight, 
-  ArrowUp, 
-  ArrowDown,
-  Scissors,
-  Copy,
-  ClipboardPaste,
-  Undo,
-  Redo,
-  Indent,
-  Outdent,
-  WrapText,
-  Type,
-  Move,
-  Target,
-  Lightbulb,
-  ChevronRight,
   Keyboard,
-  Layers,
-  Quote,
+  X,
+  Command,
+  Target,
+  Scissors,
   Braces,
-  Parentheses,
-  Brackets,
-  X
+  Layers,
+  Undo,
+  Move
 } from 'lucide-react';
 
 interface HelixEditorProps {
@@ -41,20 +21,19 @@ interface HelixEditorProps {
   onContentChange: (content: string) => void;
   onKeystroke: (key: string) => void;
   readOnly?: boolean;
-  showMode?: boolean;
 }
+
+type HelixMode = 'normal' | 'insert' | 'select' | 'match';
 
 export default function HelixEditor({
   initialContent,
-  targetContent,
   onContentChange,
   onKeystroke,
   readOnly = false,
-  showMode = true,
 }: HelixEditorProps) {
   const [content, setContent] = useState(initialContent);
-  const [mode, setMode] = useState<HelixMode>({ type: 'normal' });
-  const [keystrokes, setKeystrokes] = useState<Keystroke[]>([]);
+  const [mode, setMode] = useState<HelixMode>('normal');
+  const [keystrokes, setKeystrokes] = useState(0);
   const [pendingCommand, setPendingCommand] = useState<string | null>(null);
   const [showKeyGuide, setShowKeyGuide] = useState(false);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
@@ -67,79 +46,48 @@ export default function HelixEditor({
     if (readOnly) return;
     
     // Track keystroke
-    const key = e.key;
-    setKeystrokes(prev => [...prev, { key, timestamp: Date.now() }]);
-    onKeystroke(key);
+    setKeystrokes(prev => prev + 1);
+    onKeystroke(e.key);
 
     // Handle Helix-style keybindings
-    if (mode.type === 'normal') {
-      handleNormalModeKey(e);
-    } else if (mode.type === 'insert') {
+    if (mode === 'normal') {
+      if (e.key === 'i') {
+        e.preventDefault();
+        setMode('insert');
+      } else if (e.key === 'v') {
+        e.preventDefault();
+        setMode('select');
+      } else if (e.key === 'm') {
+        e.preventDefault();
+        setMode('match');
+        setPendingCommand(null);
+      } else if ('hjklxXdcywbeWEB'.includes(e.key)) {
+        e.preventDefault();
+      }
+    } else if (mode === 'insert') {
       if (e.key === 'Escape') {
         e.preventDefault();
-        setMode({ type: 'normal' });
+        setMode('normal');
       }
-    } else if (mode.type === 'select') {
-      handleSelectModeKey(e);
-    } else if (mode.type === 'match') {
-      handleMatchModeKey(e);
-    }
-  }, [mode, readOnly, onKeystroke]);
-
-  const handleNormalModeKey = (e: KeyboardEvent) => {
-    const key = e.key;
-    
-    // Prevent default for Helix keys
-    if ('hjklwebWEBxXvVdcyYpPoaIArfFtT~mJ;,%'.includes(key) || 
-        key === 'Escape' || key === 'Enter' || key === 'Backspace' ||
-        key === '>' || key === '<' || key === 'Tab' ||
-        key === 'g' || key === 'G' || key === 'C' || key === 's' ||
-        key === 'u' || key === 'U' || key === ',' || key === '.' ||
-        key === '/' || key === '?' || key === 'n' || key === 'N') {
+    } else if (mode === 'select') {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setMode('normal');
+      }
+    } else if (mode === 'match') {
       e.preventDefault();
-    }
-
-    switch (key) {
-      case 'i':
-        setMode({ type: 'insert' });
-        break;
-      case 'v':
-        setMode({ type: 'select' });
-        break;
-      case 'V':
-        setMode({ type: 'select', subMode: 'line' });
-        break;
-      case 'm':
-        setMode({ type: 'match' });
-        break;
-      case 'Escape':
-        setMode({ type: 'normal' });
+      if (e.key === 'i' || e.key === 'a') {
+        setPendingCommand(e.key);
+      } else if (e.key === 'Escape') {
+        setMode('normal');
         setPendingCommand(null);
-        break;
+      } else if ('([{\'"])}'.includes(e.key) && pendingCommand) {
+        // Match command complete (e.g., mi()
+        setMode('normal');
+        setPendingCommand(null);
+      }
     }
-  };
-
-  const handleSelectModeKey = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      setMode({ type: 'normal' });
-    }
-  };
-
-  const handleMatchModeKey = (e: KeyboardEvent) => {
-    e.preventDefault();
-    // Handle match mode sub-commands (i, a for inside/around)
-    if (e.key === 'i' || e.key === 'a') {
-      setPendingCommand(e.key);
-    } else if ('([{\'""])}'.includes(e.key) && pendingCommand) {
-      // Complete the match command (e.g., mi(), ma[)
-      setMode({ type: 'normal' });
-      setPendingCommand(null);
-    } else if (e.key === 'Escape') {
-      setMode({ type: 'normal' });
-      setPendingCommand(null);
-    }
-  };
+  }, [mode, readOnly, onKeystroke, pendingCommand]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -154,54 +102,51 @@ export default function HelixEditor({
   };
 
   const getModeColor = () => {
-    switch (mode.type) {
-      case 'normal':
-        return 'bg-blue-500';
-      case 'insert':
-        return 'bg-green-500';
-      case 'select':
-        return 'bg-purple-500';
-      case 'match':
-        return 'bg-pink-500';
-      default:
-        return 'bg-gray-500';
+    switch (mode) {
+      case 'normal': return 'bg-[#7a9e7e] text-white';
+      case 'insert': return 'bg-[#c4705a] text-white';
+      case 'select': return 'bg-[#a855f7] text-white';
+      case 'match': return 'bg-[#d4a574] text-white';
+      default: return 'bg-[#9a948e] text-white';
     }
   };
 
   const getModeLabel = () => {
-    if (pendingCommand) {
+    if (pendingCommand && mode === 'match') {
       return `MATCH ${pendingCommand.toUpperCase()}`;
     }
-    return mode.type.toUpperCase();
-  };
-
-  const getRecentKeys = () => {
-    return keystrokes.slice(-5).map(k => k.key).join(' ');
+    return mode.toUpperCase();
   };
 
   return (
-    <div className="flex flex-col h-full rounded-lg overflow-hidden border border-slate-700 bg-slate-900">
+    <div className="flex flex-col h-full bg-[#2d2a26]">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2 bg-slate-800 border-b border-slate-700">
+      <div className="flex items-center justify-between px-4 py-3 bg-[#1a1a25] border-b border-[#3a3a3a]">
         <div className="flex items-center gap-3">
-          <div className={`px-3 py-1 rounded-md text-xs font-bold text-white ${getModeColor()} transition-colors`}>
+          <div className={`px-3 py-1 rounded text-xs font-bold ${getModeColor()} transition-colors`}>
             {getModeLabel()}
           </div>
-          {pendingCommand && (
-            <span className="text-xs text-slate-400">
-              Waiting for delimiter...
+          
+          {pendingCommand && mode === 'match' && (
+            <span className="text-xs text-[#9a948e]">
+              Type delimiter (e.g., parens, brackets, quotes)
             </span>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+        
+        <div className="flex items-center gap-4">
+          <span className="text-xs text-[#9a948e]">{keystrokes} keys</span>
+          
+          <button
             onClick={() => setShowKeyGuide(!showKeyGuide)}
-            className={`p-2 rounded-md transition-colors ${showKeyGuide ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
+            className={`p-2 rounded transition-colors ${
+              showKeyGuide 
+                ? 'bg-[#3a3a3a] text-[#faf8f5]' 
+                : 'text-[#9a948e] hover:text-[#faf8f5]'
+            }`}
           >
             <Keyboard size={16} />
-          </motion.button>
+          </button>
         </div>
       </div>
 
@@ -212,7 +157,7 @@ export default function HelixEditor({
           defaultLanguage="plaintext"
           value={content}
           onChange={handleEditorChange}
-          theme="vs-dark"
+          theme="hc-black"
           options={{
             readOnly,
             minimap: { enabled: false },
@@ -227,112 +172,81 @@ export default function HelixEditor({
             quickSuggestions: false,
             suggestOnTriggerCharacters: false,
             wordWrap: 'on',
+            renderLineHighlight: 'all',
+            lineHeight: 24,
           }}
           onMount={(editor) => {
             editorRef.current = editor;
+            // Focus editor on mount
+            editor.focus();
           }}
         />
 
         {/* Key Guide Overlay */}
         {showKeyGuide && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="absolute top-4 right-4 w-80 bg-slate-800/95 backdrop-blur-sm rounded-lg border border-slate-700 shadow-2xl p-4 z-10"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-semibold text-white">Key Guide</span>
+          <div className="absolute top-4 right-4 w-80 bg-[#1a1a25]/98 rounded-lg border border-[#3a3a3a] shadow-2xl p-4 z-10">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm font-semibold text-[#faf8f5]">Key Guide</span>
               <button 
                 onClick={() => setShowKeyGuide(false)}
-                className="text-slate-400 hover:text-white"
+                className="text-[#9a948e] hover:text-[#faf8f5]"
               >
                 <X size={16} />
               </button>
             </div>
             
-            <div className="space-y-3">
-              <KeyGroup title="Movement" icon={<Move size={14} />} color="text-blue-400">
-                <KeyItem keys={['h', 'j', 'k', 'l']} desc="Left, Down, Up, Right" />
-                <KeyItem keys={['w', 'b', 'e']} desc="Next/prev word, word end" />
-                <KeyItem keys={['W', 'B', 'E']} desc="WORD (space-separated)" />
-                <KeyItem keys={['f', 't']} desc="Find/till character" />
-                <KeyItem keys={['gg', 'G']} desc="Go to first/last line" />
+            <div className="space-y-4 max-h-[400px] overflow-y-auto">
+              <KeyGroup title="Movement" icon={<Move size={14} />} color="text-[#7a9e7e]">
+                <KeyItem keys="hjkl" desc="Left, Down, Up, Right" />
+                <KeyItem keys="w b e" desc="Word navigation" />
+                <KeyItem keys="gg G" desc="First/last line" />
               </KeyGroup>
               
-              <KeyGroup title="Selection" icon={<Target size={14} />} color="text-purple-400">
-                <KeyItem keys={['x']} desc="Select line, extend to next" />
-                <KeyItem keys={['v', 'V']} desc="Select mode, line-wise" />
-                <KeyItem keys={[';']} desc="Collapse to cursor" />
-                <KeyItem keys={['C']} desc="Copy selection down" />
-                <KeyItem keys={['s']} desc="Split on regex" />
-                <KeyItem keys={['%']} desc="Select entire file" />
+              <KeyGroup title="Selection" icon={<Target size={14} />} color="text-[#a855f7]">
+                <KeyItem keys="x" desc="Select line" />
+                <KeyItem keys="v V" desc="Select mode" />
+                <KeyItem keys=";" desc="Collapse selection" />
               </KeyGroup>
               
-              <KeyGroup title="Changes" icon={<Scissors size={14} />} color="text-orange-400">
-                <KeyItem keys={['i', 'a']} desc="Insert before/after" />
-                <KeyItem keys={['I', 'A']} desc="Insert at line start/end" />
-                <KeyItem keys={['o', 'O']} desc="Open below/above" />
-                <KeyItem keys={['d']} desc="Delete selection" />
-                <KeyItem keys={['c']} desc="Change (delete + insert)" />
-                <KeyItem keys={['y', 'p', 'P']} desc="Yank, paste after/before" />
-                <KeyItem keys={['r']} desc="Replace character" />
-                <KeyItem keys={['~']} desc="Switch case" />
-                <KeyItem keys={['>', '<']} desc="Indent, unindent" />
-                <KeyItem keys={['J']} desc="Join lines" />
+              <KeyGroup title="Changes" icon={<Scissors size={14} />} color="text-[#c4705a]">
+                <KeyItem keys="i a" desc="Insert before/after" />
+                <KeyItem keys="d" desc="Delete" />
+                <KeyItem keys="c" desc="Change" />
+                <KeyItem keys="y p P" desc="Yank/paste" />
               </KeyGroup>
               
-              <KeyGroup title="Surround" icon={<Braces size={14} />} color="text-pink-400">
-                <KeyItem keys={['m']} desc="Enter match mode" />
-                <KeyItem keys={['mi(', 'ma(']} desc="Match inside/around ()" />
-                <KeyItem keys={['mi[', 'ma[']} desc="Match inside/around []" />
-                <KeyItem keys={['mi{', 'ma{']} desc="Match inside/around {}" />
-                <KeyItem keys={['ms"']} desc="Add surround" />
-                <KeyItem keys={['mr("']} desc="Replace surround" />
-                <KeyItem keys={['md"']} desc="Delete surround" />
+              <KeyGroup title="Surround" icon={<Braces size={14} />} color="text-[#d4a574]">
+                <KeyItem keys="m" desc="Match mode" />
+                <KeyItem keys="mi( ma(" desc="Inside/around ()" />
+                <KeyItem keys='ms"' desc='Add surround' />
+                <KeyItem keys='md"' desc='Delete surround' />
               </KeyGroup>
               
-              <KeyGroup title="Multi-cursor" icon={<Layers size={14} />} color="text-cyan-400">
-                <KeyItem keys={['C']} desc="Copy selection to next line" />
-                <KeyItem keys={['s']} desc="Split selection" />
-                <KeyItem keys={[',']} desc="Keep primary selection" />
-              </KeyGroup>
-              
-              <KeyGroup title="History" icon={<Undo size={14} />} color="text-gray-400">
-                <KeyItem keys={['u', 'U']} desc="Undo, redo" />
-                <KeyItem keys={['.']} desc="Repeat last insert" />
+              <KeyGroup title="History" icon={<Undo size={14} />} color="text-[#9a948e]">
+                <KeyItem keys="u U" desc="Undo/redo" />
+                <KeyItem keys="." desc="Repeat last insert" />
               </KeyGroup>
             </div>
             
-            <div className="mt-4 pt-3 border-t border-slate-700">
-              <div className="flex items-center gap-2 text-xs text-slate-500">
-                <span className="px-2 py-1 bg-slate-700 rounded">Esc</span>
-                <span>to return to NORMAL mode</span>
+            <div className="mt-4 pt-3 border-t border-[#3a3a3a]">
+              <div className="flex items-center gap-2 text-xs text-[#9a948e]">
+                <span className="px-2 py-1 bg-[#3a3a3a] rounded">Esc</span>
+                <span>to return to NORMAL</span>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
-      </div>
-
-      {/* Footer */}
-      <div className="flex items-center justify-between px-4 py-2 bg-slate-800 border-t border-slate-700 text-xs text-slate-400">
-        <div className="flex items-center gap-4">
-          <span>{keystrokes.length} keystrokes</span>
-          {keystrokes.length > 0 && (
-            <span className="text-slate-500">
-              Recent: <span className="text-slate-300 font-mono">{getRecentKeys()}</span>
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-slate-500">HelixGolf</span>
-        </div>
       </div>
     </div>
   );
 }
 
-function KeyGroup({ title, icon, color, children }: { 
+function KeyGroup({ 
+  title, 
+  icon, 
+  color, 
+  children 
+}: { 
   title: string; 
   icon: React.ReactNode; 
   color: string;
@@ -344,24 +258,18 @@ function KeyGroup({ title, icon, color, children }: {
         {icon}
         <span>{title}</span>
       </div>
-      <div className="space-y-1">
-        {children}
-      </div>
+      <div className="space-y-1">{children}</div>
     </div>
   );
 }
 
-function KeyItem({ keys, desc }: { keys: string[]; desc: string }) {
+function KeyItem({ keys, desc }: { keys: string; desc: string }) {
   return (
     <div className="flex items-center justify-between text-xs">
-      <div className="flex items-center gap-1">
-        {keys.map((key, i) => (
-          <span key={i} className="px-1.5 py-0.5 bg-slate-700 rounded text-slate-200 font-mono">
-            {key}
-          </span>
-        ))}
-      </div>
-      <span className="text-slate-500">{desc}</span>
+      <code className="px-1.5 py-0.5 bg-[#3a3a3a] rounded text-[#faf8f5] font-mono">
+        {keys}
+      </code>
+      <span className="text-[#9a948e]">{desc}</span>
     </div>
   );
 }
