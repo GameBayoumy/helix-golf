@@ -7,155 +7,156 @@ import {
   Keyboard, 
   Target, 
   Zap, 
-  ChevronRight,
-  Command,
+  ArrowRight,
   Layers,
-  GitBranch
+  GitBranch,
+  BookOpen
 } from 'lucide-react';
 
 const categories = [
-  { id: 'movement', name: 'Movement', icon: Target, color: '#ff6b6b', count: 0 },
-  { id: 'selection', name: 'Selection', icon: Layers, color: '#4ecdc4', count: 0 },
-  { id: 'change', name: 'Change', icon: Zap, color: '#ffb347', count: 0 },
-  { id: 'surround', name: 'Surround', icon: Command, color: '#a855f7', count: 0 },
-  { id: 'multicursor', name: 'Multi-cursor', icon: GitBranch, color: '#22d3ee', count: 0 },
+  { id: 'movement', name: 'Movement', icon: Target, desc: 'Navigate with precision' },
+  { id: 'selection', name: 'Selection', icon: Layers, desc: 'Select with intent' },
+  { id: 'change', name: 'Change', icon: Zap, desc: 'Transform efficiently' },
+  { id: 'surround', name: 'Surround', icon: Terminal, desc: 'Master delimiters' },
+  { id: 'multicursor', name: 'Multi', icon: GitBranch, desc: 'Edit in parallel' },
 ];
 
-// Count challenges per category
-categories.forEach(cat => {
-  cat.count = challenges.filter(c => c.category === cat.id).length;
-});
-
 export default function LandingPage() {
+  const firstChallenge = challenges[0];
+  
   return (
-    <div className="relative min-h-screen">
-      {/* Header */}
-      <header className="border-b border-[#2a2a3a] bg-[#0a0a0f]/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#ff6b6b] to-[#ff8e8e] flex items-center justify-center">
-              <Terminal className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight text-white">helix<span className="text-[#ff6b6b]">dojo</span></h1>
-              <p className="text-xs text-[#6b6b7b]">Master the selection-first editor</p>
-            </div>
+    <div className="min-h-screen">
+      {/* Navigation */}
+      <nav className="border-b border-[#e8e3db] bg-[#faf8f5]">
+        <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-bold text-[#2d2a26]" style={{ fontFamily: 'var(--font-serif)' }}>
+              helix
+            </span>
+            <span className="text-lg text-[#c4705a] font-semibold" style={{ fontFamily: 'var(--font-mono)' }}>
+              dojo
+            </span>
           </div>
           
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="/tutorial" className="text-sm text-[#6b6b7b] hover:text-white transition-colors">Tutorial</Link>
-            <Link href="/sandbox" className="text-sm text-[#6b6b7b] hover:text-white transition-colors">Sandbox</Link>
+          <div className="flex items-center gap-8">
+            <Link href="/tutorial" className="text-sm text-[#6b6560] hover:text-[#2d2a26] transition-colors">
+              Tutorial
+            </Link>
+            <Link href="/sandbox" className="text-sm text-[#6b6560] hover:text-[#2d2a26] transition-colors">
+              Sandbox
+            </Link>
             <a 
               href="https://helix-editor.com" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-sm text-[#6b6b7b] hover:text-white transition-colors"
+              className="text-sm text-[#6b6560] hover:text-[#2d2a26] transition-colors"
             >
-              Helix Docs ↗
+              Documentation ↗
             </a>
-          </nav>
+          </div>
         </div>
-      </header>
+      </nav>
 
-      {/* Hero Section */}
-      <section className="relative pt-20 pb-32">
+      {/* Hero Section - Asymmetric */}
+      <section className="pt-16 pb-24 overflow-hidden">
         <div className="max-w-6xl mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#ff6b6b]/10 border border-[#ff6b6b]/20 mb-6">
-                <span className="w-2 h-2 rounded-full bg-[#ff6b6b] animate-pulse" />
-                <span className="text-sm text-[#ff6b6b]">{challenges.length} Challenges Available</span>
+          <div className="grid lg:grid-cols-12 gap-12 items-start">
+            
+            {/* Left Column - Text */}
+            <div className="lg:col-span-5 lg:pt-12">
+              <div className="flex items-center gap-2 text-sm text-[#c4705a] mb-6">
+                <span className="w-8 h-[2px] bg-[#c4705a]" />
+                <span style={{ fontFamily: 'var(--font-mono)' }}>{challenges.length} curated challenges</span>
               </div>
               
-              <h2 className="text-5xl md:text-6xl font-bold leading-tight mb-6">
-                Think in <span className="text-[#ff6b6b]">selections</span>.
+              <h1 
+                className="text-5xl lg:text-6xl font-bold text-[#2d2a26] mb-6 leading-[1.1]"
+                style={{ fontFamily: 'var(--font-serif)' }}
+              >
+                The Art of
                 <br />
-                Edit with <span className="text-[#4ecdc4]">precision</span>.
-              </h2>
+                <span className="accent-underline">Text Editing</span>
+              </h1>
               
-              <p className="text-lg text-[#6b6b7b] mb-8 leading-relaxed max-w-lg">
-                Helix is a modal editor with a twist: multiple selections, context-aware commands, 
-                and a consistent grammar. Master it through hands-on challenges.
+              <p 
+                className="text-lg text-[#6b6560] mb-8 leading-relaxed"
+                style={{ fontFamily: 'var(--font-sans)' }}
+              >
+                Helix is a modal editor built on a simple idea: 
+                <strong className="text-[#2d2a26]">select, then act</strong>. 
+                No Vim legacy. No Emacs chords. Just you and your text.
               </p>
               
               <div className="flex flex-wrap gap-4">
-                <Link 
-                  href={`/challenge/${challenges[0].id}`}
-                  className="group inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#ff6b6b] to-[#ff8e8e] rounded-lg font-semibold text-white hover:shadow-lg hover:shadow-[#ff6b6b]/25 transition-all"
-                >
-                  <Keyboard className="w-5 h-5" />
+                <Link href={`/challenge/${firstChallenge.id}`} className="btn-primary">
+                  <Keyboard className="w-4 h-4" />
                   Start Training
-                  <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
                 
-                <Link 
-                  href="/sandbox"
-                  className="inline-flex items-center gap-2 px-6 py-3 border border-[#2a2a3a] rounded-lg font-semibold text-white hover:bg-[#1a1a25] transition-colors"
-                >
-                  <Terminal className="w-5 h-5" />
-                  Open Sandbox
+                <Link href="/sandbox" className="btn-secondary">
+                  <Terminal className="w-4 h-4" />
+                  Free Play
                 </Link>
               </div>
             </div>
-            
-            {/* Hero Visual - Code Demo */}
-            <div className="relative">
-              <div className="terminal-window glow-coral">
-                <div className="terminal-header">
-                  <div className="flex gap-2">
-                    <div className="terminal-dot red" />
-                    <div className="terminal-dot yellow" />
-                    <div className="terminal-dot green" />
-                  </div>
-                  <span className="text-sm text-[#6b6b7b] ml-4">challenge_01.txt</span>
-                </div>
-                
-                <div className="p-6 font-mono text-sm">
-                  <div className="flex items-center gap-4 mb-4">
-                    <span className="text-[#6b6b7b]">NORMAL</span>
-                    <span className="text-[#4ecdc4]">mi(</span>
-                    <span className="text-[#6b6b7b]">— Select inside parentheses</span>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <div className="flex">
-                      <span className="text-[#6b6b7b] w-8">1</span>
-                      <span className="text-[#6b6b7b]">function </span>
-                      <span className="text-[#ffb347]">greet</span>
-                      <span className="text-white">(</span>
-                      <span className="bg-[#ff6b6b]/30 text-white px-1">name</span>
-                      <span className="text-white">)</span>
-                      <span className="text-white"></span>
-                      <span className="text-white"></span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-[#6b6b7b] w-8">2</span>
-                      <span className="text-[#6b6b7b] ml-4">return </span>
-                      <span className="text-[#4ecdc4]">"Hello"</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-[#6b6b7b] w-8">3</span>
-                      <span className="text-white">&rbrace;</span>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-6 pt-4 border-t border-[#2a2a3a] flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <span className="text-xs text-[#6b6b7b]">Selected: 4 chars</span>
-                      <span className="text-xs text-[#6b6b7b]">1 selection</span>
-                    </div>
-                    <span className="text-xs text-[#ff6b6b]">● REC</span>
-                  </div>
-                </div>
-              </div>
+
+            {/* Right Column - Visual */}
+            <div className="lg:col-span-7 relative">
+              <div className="grid-decoration absolute inset-0 opacity-50" />
               
-              {/* Floating Key Hint */}
-              <div className="absolute -bottom-4 -right-4 bg-[#1a1a25] border border-[#2a2a3a] rounded-lg p-4 shadow-xl">
-                <p className="text-xs text-[#6b6b7b] mb-2">Next: Wrap with quotes</p>
-                <div className="flex items-center gap-2">
-                  <span className="keycap">ms"</span>
-                  <span className="text-[#6b6b7b]">→</span>
-                  <span className="text-[#4ecdc4]">"name"</span>
+              <div className="relative z-10">
+                <div className="terminal-warm max-w-lg ml-auto">
+                  <div className="terminal-header-warm">
+                    <div className="flex gap-2">
+                      <div className="terminal-dot red" />
+                      <div className="terminal-dot yellow" />
+                      <div className="terminal-dot green" />
+                    </div>
+                    <span className="text-sm text-[#9a948e] ml-4">challenge_01.rs</span>
+                  </div>
+                  
+                  <div className="p-6 font-mono text-sm text-[#faf8f5]">
+                    <div className="flex items-center gap-3 mb-4 text-[#9a948e]">
+                      <span className="text-[#7a9e7e]">NORMAL</span>
+                      <span>mi(</span>
+                      <span className="text-xs opacity-60">— select inside parens</span>
+                    </div>
+                    
+                    <div className="space-y-1">
+                      <div className="flex">
+                        <span className="text-[#6b6560] w-6">1</span>
+                        <span className="text-[#9a948e]">fn </span>
+                        <span className="text-[#d4a574]">greet</span>
+                        <span className="text-[#faf8f5]">(</span>
+                        <span className="bg-[#c4705a]/30 px-1 rounded">name</span>
+                        <span className="text-[#faf8f5]">) {}</span>
+                      </div>
+                      
+                      <div className="flex opacity-40">
+                        <span className="text-[#6b6560] w-6">2</span>
+                        <span>// Your move...</span>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-6 pt-4 border-t border-[#4a4540] flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-4">
+                        <span className="text-[#7a9e7e]">● 1 selection</span>
+                        <span className="text-[#9a948e]">4 chars selected</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Floating Key Hint */}
+                <div className="absolute -bottom-4 -left-4 bg-white border border-[#e8e3db] rounded-lg p-4 shadow-xl"
+                  style={{ transform: 'rotate(-2deg)' }}
+                >
+                  <p className="text-xs text-[#6b6560] mb-2">Next: wrap with quotes</p>
+                  <div className="flex items-center gap-2">
+                    <span className="key-physical">ms"</span>
+                    <span className="text-[#6b6560]">→</span>
+                    <span className="text-[#7a9e7e] font-mono">"name"</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -163,59 +164,62 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Stats Bar */}
-      <section className="border-y border-[#2a2a3a] bg-[#12121a]/50">
-        <div className="max-w-6xl mx-auto px-6 py-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {[
-              { value: challenges.length, label: 'Challenges', color: '#ff6b6b' },
-              { value: '5', label: 'Categories', color: '#4ecdc4' },
-              { value: '∞', label: 'Sandboxes', color: '#ffb347' },
-              { value: '0', label: 'Your Progress', color: '#a855f7' },
-            ].map((stat, i) => (
-              <div key={i} className="text-center">
-                <div className="text-3xl font-bold mb-1" style={{ color: stat.color }}>{stat.value}</div>
-                <div className="text-sm text-[#6b6b7b]">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Categories */}
-      <section className="py-20">
+      {/* Categories - Horizontal Cards */}
+      <section className="py-20 bg-[#f5f0e8]">
         <div className="max-w-6xl mx-auto px-6">
-          <div className="flex items-center justify-between mb-8">
-            <h3 className="text-2xl font-bold">Challenge Categories</h3>
+          <div className="flex items-end justify-between mb-12">
+            <div>
+              <span className="text-sm text-[#c4705a] mb-2 block" style={{ fontFamily: 'var(--font-mono)' }}>
+                01 — The Path
+              </span>
+              <h2 
+                className="text-3xl font-bold text-[#2d2a26]"
+                style={{ fontFamily: 'var(--font-serif)' }}
+              >
+                Five Disciplines
+              </h2>
+            </div>
             <Link 
               href="/sandbox"
-              className="text-sm text-[#6b6b7b] hover:text-white transition-colors flex items-center gap-1"
+              className="text-sm text-[#6b6560] hover:text-[#2d2a26] transition-colors flex items-center gap-1"
             >
-              View All <ChevronRight className="w-4 h-4" />
+              View All Challenges <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
           
-          <div className="grid md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {categories.map((cat) => {
+          <div className="grid md:grid-cols-5 gap-4">
+            {categories.map((cat, i) => {
               const Icon = cat.icon;
+              const count = challenges.filter(c => c.category === cat.id).length;
+              
               return (
                 <Link
                   key={cat.id}
                   href={`/sandbox?category=${cat.id}`}
-                  className="group p-6 rounded-xl border border-[#2a2a3a] bg-[#12121a] hover:border-opacity-50 transition-all hover:scale-[1.02]"
+                  className="group card-editorial p-6 flex flex-col"
                 >
-                  <div 
-                    className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 transition-colors"
-                    style={{ backgroundColor: `${cat.color}15` }}
-                  >
-                    <Icon className="w-6 h-6" style={{ color: cat.color }} />
+                  <div className="flex items-center justify-between mb-4">
+                    <span 
+                      className="text-4xl font-bold text-[#e8e3db] group-hover:text-[#c4705a] transition-colors"
+                      style={{ fontFamily: 'var(--font-serif)' }}
+                    >
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <Icon className="w-5 h-5 text-[#6b6560] group-hover:text-[#c4705a] transition-colors" />
                   </div>
                   
-                  <h4 className="font-semibold mb-1 group-hover:text-white transition-colors">
+                  <h3 
+                    className="font-semibold text-[#2d2a26] mb-1"
+                    style={{ fontFamily: 'var(--font-mono)' }}
+                  >
                     {cat.name}
-                  </h4>
+                  </h3>
                   
-                  <p className="text-sm text-[#6b6b7b]">{cat.count} challenges</p>
+                  <p className="text-sm text-[#6b6560] mb-4">{cat.desc}</p>
+                  
+                  <div className="mt-auto pt-4 border-t border-[#e8e3db]">
+                    <span className="text-xs text-[#9a948e]">{count} exercises</span>
+                  </div>
                 </Link>
               );
             })}
@@ -224,42 +228,64 @@ export default function LandingPage() {
       </section>
 
       {/* Featured Challenges */}
-      <section className="py-20 border-t border-[#2a2a3a]">
+      <section className="py-24">
         <div className="max-w-6xl mx-auto px-6">
-          <h3 className="text-2xl font-bold mb-8">Start Here</h3>
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <span className="text-sm text-[#c4705a] mb-2 block" style={{ fontFamily: 'var(--font-mono)' }}>
+              02 — Practice
+            </span>            
+            <h2 
+              className="text-3xl font-bold text-[#2d2a26] mb-4"
+              style={{ fontFamily: 'var(--font-serif)' }}
+            >
+              Begin with the Fundamentals
+            </h2>
+            
+            <p className="text-[#6b6560]" style={{ fontFamily: 'var(--font-sans)' }}>
+              Master these core concepts before advancing to complex multi-step transformations.
+            </p>
+          </div>
           
-          <div className="grid md:grid-cols-3 gap-6">
-            {challenges.slice(0, 6).map((challenge, i) => (
+          <div className="space-y-4 max-w-3xl mx-auto">
+            {challenges.slice(0, 5).map((challenge, i) => (
               <Link
                 key={challenge.id}
                 href={`/challenge/${challenge.id}`}
-                className="group p-6 rounded-xl border border-[#2a2a3a] bg-[#12121a] hover:bg-[#1a1a25] transition-all"
+                className="group flex items-center gap-6 p-6 bg-white border border-[#e8e3db] rounded-lg hover:border-[#c4705a] transition-all"
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl font-bold text-[#2a2a3a] group-hover:text-[#ff6b6b] transition-colors">
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
-                    <div
-                      className="px-2 py-0.5 rounded text-xs font-medium"
+                <span 
+                  className="text-2xl font-bold text-[#e8e3db] group-hover:text-[#c4705a] transition-colors w-12"
+                  style={{ fontFamily: 'var(--font-serif)' }}
+                >
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-1">
+                    <h4 
+                      className="font-semibold text-[#2d2a26]"
+                      style={{ fontFamily: 'var(--font-mono)' }}
+                    >
+                      {challenge.name}
+                    </h4>
+                    
+                    <span 
+                      className="text-xs px-2 py-0.5 rounded"
                       style={{
-                        backgroundColor: challenge.difficulty === 'easy' ? '#22c55e20' : challenge.difficulty === 'medium' ? '#f59e0b20' : '#ef444420',
-                        color: challenge.difficulty === 'easy' ? '#4ade80' : challenge.difficulty === 'medium' ? '#fbbf24' : '#f87171'
+                        background: challenge.difficulty === 'easy' ? '#f0ebe4' : '#e8e3db',
+                        color: '#6b6560'
                       }}
                     >
                       {challenge.difficulty}
-                    </div>
+                    </span>
                   </div>
                   
-                  <ChevronRight className="w-5 h-5 text-[#2a2a3a] group-hover:text-white transition-colors" />
+                  <p className="text-sm text-[#6b6560]">{challenge.description}</p>
                 </div>
                 
-                <h4 className="font-semibold mb-2 group-hover:text-white transition-colors">{challenge.name}</h4>
-                
-                <p className="text-sm text-[#6b6b7b] line-clamp-2">{challenge.description}</p>
-                
-                <div className="mt-4 pt-4 border-t border-[#2a2a3a] flex items-center gap-2">
-                  <span className="text-xs text-[#6b6b7b]">Optimal: {challenge.optimalKeystrokes} keystrokes</span>
+                <div className="flex items-center gap-4 text-sm text-[#9a948e]">
+                  <span>~{challenge.optimalKeystrokes} keys</span>
+                  <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
               </Link>
             ))}
@@ -267,29 +293,53 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Philosophy Section */}
+      <section className="py-24 bg-[#2d2a26] text-[#faf8f5]">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <BookOpen className="w-12 h-12 mx-auto mb-6 text-[#c4705a]" />
+          
+          <blockquote 
+            className="text-2xl lg:text-3xl font-medium leading-relaxed mb-8"
+            style={{ fontFamily: 'var(--font-serif)' }}
+          >
+            "Helix is not Vim. It is not Emacs. It is a 
+            <span className="text-[#c4705a]">selection-first</span> editor 
+            built on the principle that you should know what you're changing 
+            <em>before</em> you change it."
+          </blockquote>
+          
+          
+          <a 
+            href="https://helix-editor.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-[#c4705a] hover:text-[#d48a76] transition-colors"
+          >
+            Read the Helix Philosophy
+            <ArrowRight className="w-4 h-4" />
+          </a>
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className="border-t border-[#2a2a3a] py-12">
+      <footer className="py-12 border-t border-[#e8e3db]">
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded bg-gradient-to-br from-[#ff6b6b] to-[#ff8e8e] flex items-center justify-center">
-                <Terminal className="w-4 h-4 text-white" />
-              </div>
-              <span className="font-bold">helix<span className="text-[#ff6b6b]">dojo</span></span>
+            <div className="flex items-baseline gap-2">
+              <span className="font-bold text-[#2d2a26]" style={{ fontFamily: 'var(--font-serif)' }}>helix</span>
+              <span className="text-[#c4705a]" style={{ fontFamily: 'var(--font-mono)' }}>dojo</span>
             </div>
             
-            <div className="flex items-center gap-6 text-sm text-[#6b6b7b]">
-              <a href="https://helix-editor.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
-                Helix Editor
-              </a>
-              <a href="https://github.com/helix-editor/helix" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
-                GitHub
-              </a>
+            <div className="flex items-center gap-6 text-sm text-[#6b6560]">
+              <a href="/terms" className="hover:text-[#2d2a26] transition-colors">Terms</a>
+              <a href="/privacy" className="hover:text-[#2d2a26] transition-colors">Privacy</a>
+              <a href="https://github.com/helix-editor/helix" target="_blank" className="hover:text-[#2d2a26] transition-colors">Helix on GitHub</a>
             </div>
           </div>
           
-          <p className="text-center text-xs text-[#6b6b7b] mt-8">
-            Not affiliated with Helix Editor. Built for practice.
+          
+          <p className="text-center text-xs text-[#9a948e] mt-8">
+            An unofficial training tool. Not affiliated with the Helix Editor project.
           </p>
         </div>
       </footer>
