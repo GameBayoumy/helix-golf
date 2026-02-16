@@ -1,20 +1,9 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "HelixGolf - Master Helix Editor",
-  description: "Practice Helix Editor movements and keybindings through interactive challenges",
+  title: "Helix Dojo — Master the Editor",
+  description: "Interactive Helix Editor training. Learn selection-first editing through challenges.",
 };
 
 export default function RootLayout({
@@ -24,9 +13,21 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-slate-950 text-slate-200`}
-      >
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+      </head>
+      <body className="min-h-screen grid-bg">
+        {/* CRT Overlay Effect */}
+        <div className="crt-overlay" />
+        
+        {/* Ambient Glow */}
+        <div className="fixed top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
+          <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-gradient-radial from-[#ff6b6b]/10 to-transparent blur-3xl" />
+          <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-gradient-radial from-[#4ecdc4]/10 to-transparent blur-3xl" />
+        </div>
+        
         {children}
       </body>
     </html>
