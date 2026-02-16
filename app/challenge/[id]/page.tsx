@@ -1,5 +1,5 @@
 import { challenges } from '@/challenges';
-import ChallengePageClient from './ChallengePageClient';
+import ChallengePageWrapper from './ChallengePageWrapper';
 
 // Generate static params for all challenges
 export function generateStaticParams() {
@@ -8,6 +8,6 @@ export function generateStaticParams() {
   }));
 }
 
-export default function ChallengePage({ params }: { params: { id: string } }) {
-  return <ChallengePageClient challengeId={params.id} />;
+export default function ChallengePage() {
+  return <ChallengePageWrapper />;
 }
