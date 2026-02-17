@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import dynamic from 'next/dynamic';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import Editor, { loader } from '@monaco-editor/react';
 import type { editor } from 'monaco-editor';
 import { 
   Keyboard,
@@ -10,14 +10,16 @@ import {
   Target,
   Scissors,
   Braces,
-  Undo
+  Undo,
+  AlertCircle
 } from 'lucide-react';
 
-// Dynamic import to avoid SSR issues
-const MonacoEditor = dynamic(
-  () => import('@monaco-editor/react').then((mod) => mod.default),
-  { ssr: false }
-);
+// Configure Monaco loader to use CDN
+loader.config({
+  paths: {
+    vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs'
+  }
+});
 
 interface HelixEditorProps {
   initialContent: string;
@@ -28,15 +30,6 @@ interface HelixEditorProps {
 }
 
 type HelixMode = 'normal' | 'insert' | 'select' | 'match';
-
-// Helix key mapping
-const HELIX_KEYS = {
-  movement: ['h', 'j', 'k', 'l', 'w', 'b', 'e', 'W', 'B', 'E', 'gg', 'G', '0', '$'],
-  selection: ['x', 'X', 'v', 'V', ';', '%'],
-  change: ['i', 'a', 'I', 'A', 'o', 'O', 'd', 'c', 'y', 'p', 'P', 'r', '~'],
-  surround: ['m', 's'],
-  history: ['u', 'U', '.'],
-};
 
 export default function HelixEditor({
   initialContent,
@@ -50,105 +43,94 @@ export default function HelixEditor({
   const [keystrokes, setKeystrokes] = useState(0);
   const [pendingCommand, setPendingCommand] = useState<string | null>(null);
   const [showKeyGuide, setShowKeyGuide] = useState(false);
-  const [selections, setSelections] = useState<any[]>([]);
+  const [editorLoaded, setEditorLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<any>(null);
-
-  // Editor theme configuration
-  const editorTheme = useMemo(() => ({
-    base: 'vs-dark',
-    inherit: true,
-    rules: [
-      { token: '', foreground: 'faf8f5', background: '2d2a26' },
-      { token: 'comment', foreground: '6b6560', fontStyle: 'italic' },
-      { token: 'keyword', foreground: 'd4a574' },
-      { token: 'string', foreground: '7a9e7e' },
-      { token: 'number', foreground: 'c4705a' },
-    ],
-    colors: {
-      'editor.background': '#2d2a26',
-      'editor.foreground': '#faf8f5',
-      'editor.lineHighlightBackground': '#3a3a3a40',
-      'editor.selectionBackground': '#c4705a40',
-      'editor.selectionHighlightBackground': '#c4705a20',
-      'editorCursor.foreground': '#c4705a',
-      'editorLineNumber.foreground': '#6b6560',
-      'editorLineNumber.activeForeground': '#faf8f5',
-    }
-  }), []);
 
   useEffect(() => {
     setContent(initialContent);
   }, [initialContent]);
 
-  // Setup Helix keybindings when editor mounts
+  // Setup Helix theme when editor mounts
   const handleEditorDidMount = (editor: editor.IStandaloneCodeEditor, monaco: any) => {
     editorRef.current = editor;
     monacoRef.current = monaco;
 
-    // Define custom theme
-    monaco.editor.defineTheme('helix', editorTheme);
-    monaco.editor.setTheme('helix');
+    try {
+      // Define custom Helix theme
+      monaco.editor.defineTheme('helix', {
+        base: 'vs-dark',
+        inherit: true,
+        rules: [
+          { token: '', foreground: 'faf8f5', background: '2d2a26' },
+          { token: 'comment', foreground: '6b6560', fontStyle: 'italic' },
+          { token: 'keyword', foreground: 'd4a574' },
+          { token: 'string', foreground: '7a9e7e' },
+          { token: 'number', foreground: 'c4705a' },
+        ],
+        colors: {
+          'editor.background': '#2d2a26',
+          'editor.foreground': '#faf8f5',
+          'editor.lineHighlightBackground': '#3a3a3a40',
+          'editor.selectionBackground': '#c4705a40',
+          'editor.selectionHighlightBackground': '#c4705a20',
+          'editorCursor.foreground': '#c4705a',
+          'editorLineNumber.foreground': '#6b6560',
+          'editorLineNumber.activeForeground': '#faf8f5',
+          'editor.inactiveSelectionBackground': '#c4705a20',
+        }
+      });
 
-    // Add Helix keybindings
-    setupHelixKeybindings(editor, monaco);
-    
-    // Focus editor
-    editor.focus();
+      monaco.editor.setTheme('helix');
+      
+      // Setup keybindings
+      setupHelixKeybindings(editor, monaco);
+      
+      setEditorLoaded(true);
+      setLoadError(null);
+      
+      // Focus editor
+      editor.focus();
+    } catch (err) {
+      console.error('Monaco initialization error:', err);
+      setLoadError('Failed to initialize editor');
+    }
   };
 
   const setupHelixKeybindings = (editor: editor.IStandaloneCodeEditor, monaco: any) => {
-    // Override default keybindings for Helix-style navigation
-    
-    // Movement keys (disable in insert mode)
-    editor.addCommand(monaco.KeyCode.KeyH, () => {
-      if (mode === 'normal') {
-        handleHelixCommand('h');
-        return null;
-      }
-    });
-    
-    editor.addCommand(monaco.KeyCode.KeyJ, () => {
-      if (mode === 'normal') {
-        handleHelixCommand('j');
-        return null;
-      }
-    });
-    
-    editor.addCommand(monaco.KeyCode.KeyK, () => {
-      if (mode === 'normal') {
-        handleHelixCommand('k');
-        return null;
-      }
-    });
-    
-    editor.addCommand(monaco.KeyCode.KeyL, () => {
-      if (mode === 'normal') {
-        handleHelixCommand('l');
-        return null;
-      }
-    });
+    // Movement keys - only active in normal mode
+    const addCommand = (keybinding: number, command: string) => {
+      editor.addCommand(keybinding, () => {
+        if (mode === 'normal') {
+          handleHelixCommand(command);
+        }
+      });
+    };
+
+    // Add movement commands
+    addCommand(monaco.KeyCode.KeyH, 'cursorLeft');
+    addCommand(monaco.KeyCode.KeyJ, 'cursorDown');
+    addCommand(monaco.KeyCode.KeyK, 'cursorUp');
+    addCommand(monaco.KeyCode.KeyL, 'cursorRight');
 
     // Mode switching
     editor.addCommand(monaco.KeyCode.KeyI, () => {
       if (mode === 'normal') {
         setMode('insert');
-        return null;
       }
     });
-    
+
     editor.addCommand(monaco.KeyCode.KeyV, () => {
       if (mode === 'normal') {
         setMode('select');
-        return null;
       }
     });
-    
+
     editor.addCommand(monaco.KeyCode.KeyM, () => {
       if (mode === 'normal') {
         setMode('match');
         setPendingCommand(null);
-        return null;
       }
     });
 
@@ -156,7 +138,6 @@ export default function HelixEditor({
     editor.addCommand(monaco.KeyCode.Escape, () => {
       setMode('normal');
       setPendingCommand(null);
-      return null;
     });
 
     // Track keystrokes
@@ -166,32 +147,11 @@ export default function HelixEditor({
     });
   };
 
-  const handleHelixCommand = (command: string) => {
+  const handleHelixCommand = (commandId: string) => {
     const editor = editorRef.current;
     if (!editor) return;
 
-    switch (command) {
-      case 'h':
-        editor.trigger('helix', 'cursorLeft', {});
-        break;
-      case 'j':
-        editor.trigger('helix', 'cursorDown', {});
-        break;
-      case 'k':
-        editor.trigger('helix', 'cursorUp', {});
-        break;
-      case 'l':
-        editor.trigger('helix', 'cursorRight', {});
-        break;
-      case 'x':
-        // Select line
-        editor.trigger('helix', 'expandLineSelection', {});
-        break;
-      case 'd':
-        // Delete selection
-        editor.trigger('helix', 'deleteSelection', {});
-        break;
-    }
+    editor.trigger('helix', commandId, {});
   };
 
   const handleEditorChange = (value: string | undefined) => {
@@ -218,6 +178,41 @@ export default function HelixEditor({
     return mode.toUpperCase();
   };
 
+  // Fallback textarea when Monaco fails
+  if (loadError) {
+    return (
+      <div className="flex flex-col h-full bg-[#2d2a26]">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 bg-[#1a1a25] border-b border-[#3a3a3a]">
+          <div className="flex items-center gap-3">
+            <div className={`px-3 py-1 rounded text-xs font-bold ${getModeColor()}`}>
+              {getModeLabel()}
+            </div>
+            <span className="text-xs text-[#9a948e]">Fallback Mode</span>
+          </div>
+          <span className="text-xs text-[#9a948e]">{keystrokes} keys</span>
+        </div>
+
+        {/* Error Message */}
+        <div className="px-4 py-2 bg-[#c4705a]/20 border-b border-[#c4705a]/30">
+          <div className="flex items-center gap-2 text-xs text-[#c4705a]">
+            <AlertCircle size={14} />
+            <span>Editor failed to load. Using fallback.</span>
+          </div>
+        </div>
+
+        {/* Textarea */}
+        <textarea
+          value={content}
+          onChange={(e) => handleEditorChange(e.target.value)}
+          className="flex-1 bg-[#2d2a26] text-[#faf8f5] p-4 font-mono text-sm resize-none outline-none"
+          style={{ fontFamily: 'JetBrains Mono, monospace', lineHeight: '1.5' }}
+          spellCheck={false}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full bg-[#2d2a26]">
       {/* Header */}
@@ -229,6 +224,10 @@ export default function HelixEditor({
           
           {pendingCommand && mode === 'match' && (
             <span className="text-xs text-[#9a948e]">Type delimiter</span>
+          )}
+          
+          {!editorLoaded && (
+            <span className="text-xs text-[#9a948e]">Loading editor...</span>
           )}
         </div>
         
@@ -250,13 +249,18 @@ export default function HelixEditor({
 
       {/* Editor */}
       <div className="flex-1 relative">
-        <MonacoEditor
+        <Editor
           height="100%"
           defaultLanguage="javascript"
           value={content}
           onChange={handleEditorChange}
           theme="helix"
           onMount={handleEditorDidMount}
+          loading={
+            <div className="flex items-center justify-center h-full text-[#9a948e]">
+              <span className="text-sm">Loading Monaco Editor...</span>
+            </div>
+          }
           options={{
             readOnly,
             minimap: { enabled: false },
