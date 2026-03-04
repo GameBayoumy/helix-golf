@@ -1,18 +1,37 @@
+export interface Position {
+  line: number;
+  column: number;
+}
+
+export interface SelectionState {
+  anchor: Position;
+  head: Position;
+}
+
+export interface SelectionGoal {
+  start: Position;
+  end: Position;
+}
+
+export interface ChallengeGoal {
+  buffer?: string;
+  cursor?: Position;
+  selections?: SelectionGoal[];
+  mode?: "normal" | "select";
+}
+
 export interface Challenge {
   id: string;
   name: string;
   description: string;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: "easy" | "medium" | "hard";
+  category: "movement" | "selection" | "change" | "surround" | "multicursor";
   initial: string;
-  target: string;
+  initialSelections?: SelectionState[];
+  goal: ChallengeGoal;
   hints: string[];
   optimalKeystrokes: number;
-  category: 'movement' | 'selection' | 'change' | 'surround' | 'multicursor';
-}
-
-export interface HelixMode {
-  type: 'normal' | 'insert' | 'select' | 'goto' | 'match' | 'view';
-  subMode?: string;
+  supportedCommands: string[];
 }
 
 export interface Keystroke {

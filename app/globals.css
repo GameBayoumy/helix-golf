@@ -1,4 +1,13 @@
 @import "tailwindcss";
+@source "../app";
+@source "../components";
+@source "../lib";
+@source "../challenges";
+@source "../tests";
+@source "../types";
+@source not "../dist";
+@source not "../.next";
+@source not "../coverage";
 
 /* Editorial Design System - Warm, Sophisticated, Human */
 
@@ -11,6 +20,7 @@
   --charcoal-light: #4a4540;
   --warm-gray: #6b6560;
   --warm-gray-light: #9a948e;
+  --border: #e8e3db;
   
   /* Accent - Terracotta */
   --terracotta: #c4705a;
@@ -23,11 +33,40 @@
   
   /* Accent - Mustard */
   --mustard: #d4a574;
-  
-  /* Typography */
-  --font-serif: 'Playfair Display', 'Georgia', serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-  --font-sans: 'Inter', -apple-system, sans-serif;
+  --select: #a855f7;
+  --cyan: #22d3ee;
+  --font-serif: Georgia, "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", "Fira Code", Consolas, monospace;
+  --font-sans: "Segoe UI", Helvetica, Arial, sans-serif;
+
+  /* Semantic surface tokens */
+  --surface-page: var(--cream);
+  --surface-subtle: var(--cream-dark);
+  --surface-card: var(--paper);
+  --surface-strong: var(--charcoal);
+  --surface-strong-muted: #1a1a25;
+  --text-default: var(--charcoal);
+  --text-muted: var(--warm-gray);
+  --text-subtle: var(--warm-gray-light);
+  --border-subtle: var(--border);
+
+  /* Editor tokens */
+  --editor-bg: var(--charcoal);
+  --editor-panel: #1a1a25;
+  --editor-border: #3a3a3a;
+  --editor-text: #faf8f5;
+  --editor-gutter: var(--warm-gray);
+  --editor-muted: var(--warm-gray-light);
+  --editor-pending: var(--mustard);
+  --editor-cursor: var(--terracotta);
+  --editor-selection: color-mix(in srgb, var(--select) 35%, transparent);
+
+  /* Named command colors */
+  --color-sage: var(--sage);
+  --color-terracotta: var(--terracotta);
+  --color-mustard: var(--mustard);
+  --color-select: var(--select);
+  --color-cyan: var(--cyan);
 }
 
 * {
@@ -39,8 +78,8 @@ html {
 }
 
 body {
-  background: var(--cream);
-  color: var(--charcoal);
+  background: var(--surface-page);
+  color: var(--text-default);
   font-family: var(--font-mono);
   line-height: 1.7;
   -webkit-font-smoothing: antialiased;
@@ -160,8 +199,8 @@ body {
 
 /* Card Styles */
 .card-editorial {
-  background: var(--paper);
-  border: 1px solid #e8e3db;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
   transition: all 0.3s ease;
 }
@@ -302,4 +341,114 @@ body {
 .link-editorial:hover {
   color: var(--terracotta-dark);
   border-bottom-width: 2px;
+}
+
+.app-frame {
+  min-height: 100vh;
+  background: var(--surface-page);
+}
+
+.panel-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+}
+
+.panel-muted {
+  background: var(--surface-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.text-subtle {
+  color: var(--text-subtle);
+}
+
+.border-subtle {
+  border-color: var(--border-subtle);
+}
+
+.bg-surface-page {
+  background: var(--surface-page);
+}
+
+.bg-surface-subtle {
+  background: var(--surface-subtle);
+}
+
+.bg-surface-strong {
+  background: var(--surface-strong);
+}
+
+.bg-editor-border {
+  background: var(--editor-border);
+}
+
+.bg-editor-text {
+  background: var(--editor-text);
+}
+
+.bg-editor-cursor {
+  background: var(--editor-cursor);
+}
+
+.bg-color-sage {
+  background: var(--color-sage);
+}
+
+.bg-color-terracotta {
+  background: var(--color-terracotta);
+}
+
+.bg-color-select {
+  background: var(--color-select);
+}
+
+.bg-charcoal-light {
+  background: var(--charcoal-light);
+}
+
+.bg-color-mustard {
+  background: var(--color-mustard);
+}
+
+.bg-editor-muted {
+  background: var(--editor-muted);
+}
+
+.bg-border-subtle {
+  background: var(--border-subtle);
+}
+
+.border-surface-strong {
+  border-color: var(--surface-strong);
+}
+
+.command-chip-light {
+  border-radius: 6px;
+  background: var(--surface-subtle);
+  padding: 0.125rem 0.375rem;
+  color: var(--text-default);
+  font-family: var(--font-mono);
+}
+
+.command-chip-dark {
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.125rem 0.375rem;
+  color: var(--editor-text);
+  font-family: var(--font-mono);
+}
+
+.editor-shell {
+  background: var(--editor-bg);
+  color: var(--editor-text);
+}
+
+.editor-panel {
+  background: var(--editor-panel);
+  border-color: var(--editor-border);
 }

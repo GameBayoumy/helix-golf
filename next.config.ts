@@ -1,7 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
-  distDir: 'dist',
+  experimental: {
+    workerThreads: true,
+    webpackBuildWorker: false,
+  },
 };
 
 module.exports = nextConfig;

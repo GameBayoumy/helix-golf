@@ -1,191 +1,180 @@
-'use client';
+"use client";
 
-import { useState, useCallback } from 'react';
-import HelixEditor from '@/components/HelixEditor';
-import { 
-  Code2, 
-  Eraser, 
-  RotateCcw, 
+import { useState } from "react";
+import Link from "next/link";
+import {
+  ChevronLeft,
+  Code2,
+  Eraser,
+  RotateCcw,
   Terminal,
-  Undo,
-  Redo,
-  ChevronLeft
-} from 'lucide-react';
-import Link from 'next/link';
+} from "lucide-react";
 
-const quickRef = [
-  { keys: 'Esc', desc: 'Normal mode' },
-  { keys: 'i', desc: 'Insert mode' },
-  { keys: 'v', desc: 'Select mode' },
-  { keys: 'hjkl', desc: 'Movement' },
-  { keys: 'w b e', desc: 'Word nav' },
-  { keys: 'x', desc: 'Select line' },
-  { keys: 'mi( ma[', desc: 'Inside/around' },
-  { keys: 'd', desc: 'Delete' },
-  { keys: 'c', desc: 'Change' },
-  { keys: 'ms"', desc: 'Surround' },
-  { keys: 'u', desc: 'Undo' },
-  { keys: 'U', desc: 'Redo' },
-];
+import HelixEditor from "@/components/HelixEditor";
+import { quickReference } from "@/lib/command-catalog";
+import { EditorSnapshot } from "@/lib/helix-engine";
 
-export default function SandboxPage() {
-  const [content, setContent] = useState(
-    `// Welcome to Helix Dojo Sandbox!
-// Practice Helix commands freely here.
-// 
-// Try some commands:
-//   - hjkl for movement
-//   - x to select lines  
-//   - mi( to select inside parentheses
-//   - ms" to surround with quotes
-//   - v for visual mode
-//   - i to insert
-//   - Esc to return to normal mode
+const initialContent = `// Helix Dojo sandbox
+// Practice the supported Helix subset here.
+//
+// Useful commands:
+//   hjkl      move
+//   w b e     word motions
+//   gg gh gl ge
+//   x X v ; %
+//   d c r y p P
+//   mi( ma[ ms"
+//   C and s
 
 function greet(name) {
     return "Hello, " + name;
 }
 
-const result = greet("World");`
-  );
-  
+const result = greet("World");`;
+
+const emptySnapshot: EditorSnapshot = {
+  content: initialContent,
+  mode: "normal",
+  selections: [],
+  cursor: { line: 0, column: 0 },
+  selectionGoals: [],
+  pendingLabel: null,
+  status: null,
+};
+
+export default function SandboxPage() {
+  const [content, setContent] = useState(initialContent);
   const [keystrokes, setKeystrokes] = useState(0);
-
-  const handleContentChange = useCallback((newContent: string) => {
-    setContent(newContent);
-  }, []);
-
-  const handleKeystroke = useCallback(() => {
-    setKeystrokes(prev => prev + 1);
-  }, []);
+  const [snapshot, setSnapshot] = useState<EditorSnapshot>(emptySnapshot);
+  const [resetKey, setResetKey] = useState(0);
 
   const handleReset = () => {
-    setContent('');
+    setContent(initialContent);
+    setSnapshot({ ...emptySnapshot, content: initialContent });
     setKeystrokes(0);
+    setResetKey((value) => value + 1);
   };
 
   const handleClear = () => {
-    setContent('');
+    setContent("");
+    setSnapshot({ ...emptySnapshot, content: "" });
+    setKeystrokes(0);
+    setResetKey((value) => value + 1);
   };
 
   return (
-    <div className="min-h-screen bg-[#faf8f5]">
-      {/* Header */}
-      <header className="border-b border-[#e8e3db] bg-white">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link 
-                href="/"
-                className="flex items-center gap-2 text-[#6b6560] hover:text-[#2d2a26] transition-colors"
-              >
-                <ChevronLeft size={18} />
-                <span className="text-sm" style={{ fontFamily: 'var(--font-mono)' }}>Back</span>
-              </Link>
-              
-              <div className="h-6 w-px bg-[#e8e3db]" />
-              
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-[#2d2a26] rounded-lg">
-                  <Terminal className="text-[#7a9e7e]" size={18} />
-                </div>
-                <div>
-                  <h1 className="font-semibold text-[#2d2a26]">Sandbox</h1>
-                  <p className="text-sm text-[#6b6560]">Practice freely</p>
-                </div>
+    <div className="app-frame">
+      <header className="border-b border-subtle bg-white">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-4">
+            <Link
+              href="/"
+              className="flex items-center gap-2 text-muted transition-colors hover:text-[var(--text-default)]"
+            >
+              <ChevronLeft size={18} />
+              <span className="text-sm" style={{ fontFamily: "var(--font-mono)" }}>
+                Back
+              </span>
+            </Link>
+
+            <div className="h-6 w-px bg-border-subtle" />
+
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-surface-strong p-2">
+                <Terminal className="text-[var(--color-sage)]" size={18} />
+              </div>
+              <div>
+                <h1 className="font-semibold text-[var(--text-default)]">Sandbox</h1>
+                <p className="text-sm text-muted">Single-engine Helix practice space</p>
               </div>
             </div>
+          </div>
 
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleClear}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-[#6b6560] border border-[#e8e3db] rounded-lg hover:border-[#2d2a26] transition-colors"
-              >
-                <Eraser size={14} />
-                Clear
-              </button>
-              
-              <button
-                onClick={handleReset}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-[#6b6560] border border-[#e8e3db] rounded-lg hover:border-[#2d2a26] transition-colors"
-              >
-                <RotateCcw size={14} />
-                Reset
-              </button>
-            </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleClear}
+              className="flex items-center gap-2 rounded-lg border border-subtle px-3 py-2 text-sm text-muted transition-colors hover:border-[var(--text-default)]"
+              type="button"
+            >
+              <Eraser size={14} />
+              Clear
+            </button>
+
+            <button
+              onClick={handleReset}
+              className="flex items-center gap-2 rounded-lg border border-subtle px-3 py-2 text-sm text-muted transition-colors hover:border-[var(--text-default)]"
+              type="button"
+            >
+              <RotateCcw size={14} />
+              Reset
+            </button>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Editor */}
+      <main className="mx-auto max-w-7xl px-6 py-8">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
           <div className="lg:col-span-3">
-            <div className="bg-white border border-[#e8e3db] rounded-lg overflow-hidden">
-              <div className="px-4 py-2 bg-[#f5f0e8] border-b border-[#e8e3db] flex items-center justify-between">
-                <span className="text-sm text-[#6b6560]" style={{ fontFamily: 'var(--font-mono)' }}>
-                  sandbox.js
+            <div className="panel-card overflow-hidden">
+              <div className="panel-muted flex items-center justify-between px-4 py-2">
+                <span className="text-sm text-muted" style={{ fontFamily: "var(--font-mono)" }}>
+                  sandbox.txt
                 </span>
-                <div className="flex items-center gap-4 text-xs text-[#9a948e]">
+                <div className="flex items-center gap-4 text-xs text-subtle">
                   <span className="flex items-center gap-1">
                     <Code2 size={12} />
                     {content.length} chars
                   </span>
-                  <span className="flex items-center gap-1">
-                    {content.split('\n').length} lines
-                  </span>
+                  <span>{content.split("\n").length} lines</span>
                 </div>
               </div>
-              
+
               <div className="h-[600px]">
                 <HelixEditor
                   initialContent={content}
-                  targetContent=""
-                  onContentChange={handleContentChange}
-                  onKeystroke={handleKeystroke}
-                  readOnly={false}
+                  onContentChange={setContent}
+                  onKeystroke={() => setKeystrokes((value) => value + 1)}
+                  onStateChange={setSnapshot}
+                  resetKey={`sandbox-${resetKey}`}
                 />
               </div>
             </div>
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-4">
-            {/* Stats */}
-            <div className="bg-white border border-[#e8e3db] rounded-lg p-4">
-              <h3 className="font-semibold text-[#2d2a26] mb-4">Stats</h3>
-              
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-[#6b6560]">Keystrokes</span>
+            <div className="panel-card p-4">
+              <h3 className="mb-4 font-semibold text-[var(--text-default)]">Stats</h3>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted">Keystrokes</span>
                   <span className="font-mono font-semibold">{keystrokes}</span>
                 </div>
-                
-                <div className="flex justify-between text-sm">
-                  <span className="text-[#6b6560]">Characters</span>
-                  <span className="font-mono">{content.length}</span>
+                <div className="flex justify-between">
+                  <span className="text-muted">Cursor</span>
+                  <span className="font-mono">
+                    {snapshot.cursor.line + 1}:{snapshot.cursor.column + 1}
+                  </span>
                 </div>
-                
-                <div className="flex justify-between text-sm">
-                  <span className="text-[#6b6560]">Lines</span>
-                  <span className="font-mono">{content.split('\n').length}</span>
+                <div className="flex justify-between">
+                  <span className="text-muted">Selections</span>
+                  <span className="font-mono">{snapshot.selectionGoals.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted">Mode</span>
+                  <span className="font-mono uppercase">{snapshot.mode}</span>
                 </div>
               </div>
             </div>
 
-            {/* Quick Reference */}
-            <div className="bg-white border border-[#e8e3db] rounded-lg p-4">
-              <h3 className="font-semibold text-[#2d2a26] mb-4">Quick Reference</h3>
-              
+            <div className="panel-card p-4">
+              <h3 className="mb-4 font-semibold text-[var(--text-default)]">Quick Reference</h3>
               <div className="space-y-2">
-                {quickRef.map((item, i) => (
-                  <div key={i} className="flex items-center justify-between text-sm"
-                  >
-                    <code className="px-2 py-0.5 bg-[#f5f0e8] rounded text-[#c4705a] font-mono text-xs">
+                {quickReference.map((item) => (
+                  <div key={item.keys} className="flex items-center justify-between gap-3 text-sm">
+                    <code className="rounded bg-surface-subtle px-2 py-0.5 font-mono text-xs text-[var(--color-terracotta)]">
                       {item.keys}
                     </code>
-                    <span className="text-[#6b6560] text-xs">{item.desc}</span>
+                    <span className="text-right text-xs text-muted">{item.desc}</span>
                   </div>
                 ))}
               </div>

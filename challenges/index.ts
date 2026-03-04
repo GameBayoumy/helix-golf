@@ -1,323 +1,353 @@
-import { Challenge } from '@/types/challenge';
+import { Challenge } from "@/types/challenge";
+import { validateChallenges } from "@/lib/challenge-schema";
 
-export const challenges: Challenge[] = [
-  // Basic Movement Challenges
+const rawChallenges: Challenge[] = [
   {
-    id: 'basic-hjkl',
-    name: 'Basic Movement',
-    description: 'Navigate to the end of the line using h, j, k, l keys.',
-    difficulty: 'easy',
-    category: 'movement',
+    id: "basic-hjkl",
+    name: "Basic Movement",
+    description: "Use h, j, k, and l to move the cursor to the X.",
+    difficulty: "easy",
+    category: "movement",
     initial: `Start here
-Navigate to
-the X mark`,
-    target: `Start here
-Navigate to
-the X mark`,
+Move down
+X`,
+    goal: {
+      cursor: { line: 2, column: 0 },
+      mode: "normal",
+    },
     hints: [
-      'Use l to move right',
-      'Use j to move down',
-      'The X is at the end of the third line',
-    ],
-    optimalKeystrokes: 12,
-  },
-  {
-    id: 'word-navigation',
-    name: 'Word Navigation',
-    description: 'Use w, b, and e to navigate through words efficiently.',
-    difficulty: 'easy',
-    category: 'movement',
-    initial: 'one two three four five six',
-    target: 'one two three four five six',
-    hints: [
-      'Use w to jump to the next word start',
-      'Use e to jump to the next word end',
-      'Use b to jump back to the previous word start',
-    ],
-    optimalKeystrokes: 6,
-  },
-
-  // Selection Challenges
-  {
-    id: 'char-selection',
-    name: 'Character Selection',
-    description: 'Use x and X to select characters and lines.',
-    difficulty: 'easy',
-    category: 'selection',
-    initial: 'hello world',
-    target: 'hello',
-    hints: [
-      'Use x to select the current character and move right',
-      'Use X to select the current line',
-      'Select " world" and delete it',
-    ],
-    optimalKeystrokes: 7,
-  },
-  {
-    id: 'line-selection',
-    name: 'Line Selection',
-    description: 'Select entire lines using x and X.',
-    difficulty: 'easy',
-    category: 'selection',
-    initial: `keep this line
-delete this line
-keep this line too`,
-    target: `keep this line
-keep this line too`,
-    hints: [
-      'Use x to select the current line',
-      'x extends to the next line if already on a line',
-      'Select and delete the middle line',
-    ],
-    optimalKeystrokes: 3,
-  },
-  {
-    id: 'extend-selection',
-    name: 'Extend Selection',
-    description: 'Use v to enter select mode and extend your selection.',
-    difficulty: 'medium',
-    category: 'selection',
-    initial: 'select [these] words',
-    target: '[these]',
-    hints: [
-      'Use v to enter select (visual) mode',
-      'Move with hjkl to extend the selection',
-      'Delete when you have the right selection',
-    ],
-    optimalKeystrokes: 10,
-  },
-
-  // Change Challenges
-  {
-    id: 'change-word',
-    name: 'Change Word',
-    description: 'Use c to change text. Select then change!',
-    difficulty: 'easy',
-    category: 'change',
-    initial: 'replace THIS word',
-    target: 'replace that word',
-    hints: [
-      'Select the word you want to change',
-      'Use c to change the selection',
-      'Type the replacement text',
-    ],
-    optimalKeystrokes: 10,
-  },
-  {
-    id: 'delete-selection',
-    name: 'Delete Selection',
-    description: 'Use d to delete selected text.',
-    difficulty: 'easy',
-    category: 'change',
-    initial: 'remove the BAD parts',
-    target: 'remove the parts',
-    hints: [
-      'Select "BAD " (including the space)',
-      'Use d to delete',
-      'Or use x to select and d to delete',
-    ],
-    optimalKeystrokes: 6,
-  },
-  {
-    id: 'replace-char',
-    name: 'Replace Character',
-    description: 'Use r to replace a single character.',
-    difficulty: 'easy',
-    category: 'change',
-    initial: 'hXllo world',
-    target: 'hello world',
-    hints: [
-      'Position cursor on the character to replace',
-      'Press r then the new character',
-      'No need to enter insert mode!',
+      "Use j to move down a line.",
+      "Use h and l for horizontal movement.",
+      "The goal is the X on line 3.",
     ],
     optimalKeystrokes: 2,
+    supportedCommands: ["h", "j", "k", "l"],
   },
-
-  // Surround Challenges
   {
-    id: 'match-inside',
-    name: 'Match Inside',
-    description: 'Use mi( to select inside parentheses.',
-    difficulty: 'medium',
-    category: 'surround',
-    initial: 'function(old) call',
-    target: 'function(new) call',
+    id: "word-navigation",
+    name: "Word Navigation",
+    description: "Jump to the start of delta using word motions.",
+    difficulty: "easy",
+    category: "movement",
+    initial: "alpha beta gamma delta",
+    goal: {
+      cursor: { line: 0, column: 17 },
+      mode: "normal",
+    },
     hints: [
-      'Use mi( to select inside the parentheses',
-      'Then use c to change the selection',
-      'Type "new" to replace',
+      "w moves to the next word start.",
+      "b moves back to the previous word start.",
+      "delta begins at column 18 if you count from 1.",
     ],
-    optimalKeystrokes: 6,
+    optimalKeystrokes: 3,
+    supportedCommands: ["w", "b", "e"],
   },
   {
-    id: 'match-around',
-    name: 'Match Around',
-    description: 'Use ma[ to select around brackets including the brackets.',
-    difficulty: 'medium',
-    category: 'surround',
-    initial: 'data = [old_value]',
-    target: 'data = new_value',
+    id: "find-char",
+    name: "Find Character",
+    description: "Use f= to land on the equals sign.",
+    difficulty: "easy",
+    category: "movement",
+    initial: "key=value",
+    goal: {
+      cursor: { line: 0, column: 3 },
+      mode: "normal",
+    },
     hints: [
-      'Use ma[ to select around the brackets',
-      'This includes the brackets themselves',
-      'Use c to change the whole selection',
+      "f waits for the character to find.",
+      "The target character is =.",
     ],
-    optimalKeystrokes: 12,
+    optimalKeystrokes: 2,
+    supportedCommands: ["f"],
   },
   {
-    id: 'add-surround',
-    name: 'Add Surround',
-    description: 'Use ms to add surround characters to a selection.',
-    difficulty: 'medium',
-    category: 'surround',
-    initial: 'const variable = value',
-    target: 'const "variable" = value',
+    id: "select-line",
+    name: "Select A Line",
+    description: "Use x to select the full middle line.",
+    difficulty: "easy",
+    category: "selection",
+    initial: `keep
+pick me
+keep`,
+    initialSelections: [
+      {
+        anchor: { line: 1, column: 0 },
+        head: { line: 1, column: 0 },
+      },
+    ],
+    goal: {
+      selections: [
+        {
+          start: { line: 1, column: 0 },
+          end: { line: 2, column: 0 },
+        },
+      ],
+      mode: "select",
+    },
     hints: [
-      'Select the word "variable"',
-      'Use ms" to add double quotes',
-      'ms = match surround',
+      "x selects the current line.",
+      "You are already on the line you need.",
     ],
-    optimalKeystrokes: 9,
+    optimalKeystrokes: 1,
+    supportedCommands: ["x"],
   },
-
-  // Multi-cursor Challenges
   {
-    id: 'multiple-cursors',
-    name: 'Multiple Cursors',
-    description: 'Use C to add cursors on multiple lines.',
-    difficulty: 'hard',
-    category: 'multicursor',
+    id: "extend-line-bounds",
+    name: "Extend To Line Bounds",
+    description: "Use X to expand the current selection to the full line.",
+    difficulty: "easy",
+    category: "selection",
+    initial: "const value = 1;",
+    initialSelections: [
+      {
+        anchor: { line: 0, column: 6 },
+        head: { line: 0, column: 10 },
+      },
+    ],
+    goal: {
+      selections: [
+        {
+          start: { line: 0, column: 0 },
+          end: { line: 0, column: 16 },
+        },
+      ],
+      mode: "select",
+    },
+    hints: [
+      "X expands the active selection to line bounds.",
+      "The whole line is the target, not just value.",
+    ],
+    optimalKeystrokes: 1,
+    supportedCommands: ["X"],
+  },
+  {
+    id: "delete-line",
+    name: "Delete A Line",
+    description: "Use x followed by d to remove the middle line.",
+    difficulty: "easy",
+    category: "change",
+    initial: `keep this
+remove this
+keep too`,
+    initialSelections: [
+      {
+        anchor: { line: 1, column: 0 },
+        head: { line: 1, column: 0 },
+      },
+    ],
+    goal: {
+      buffer: `keep this
+keep too`,
+      mode: "normal",
+    },
+    hints: [
+      "x selects the current line.",
+      "d deletes the active selection.",
+    ],
+    optimalKeystrokes: 2,
+    supportedCommands: ["x", "d"],
+  },
+  {
+    id: "replace-char",
+    name: "Replace Character",
+    description: "Use r to replace the wrong character.",
+    difficulty: "easy",
+    category: "change",
+    initial: "hXllo world",
+    initialSelections: [
+      {
+        anchor: { line: 0, column: 1 },
+        head: { line: 0, column: 1 },
+      },
+    ],
+    goal: {
+      buffer: "hello world",
+      mode: "normal",
+    },
+    hints: [
+      "r waits for the replacement character.",
+      "You only need to replace X.",
+    ],
+    optimalKeystrokes: 2,
+    supportedCommands: ["r"],
+  },
+  {
+    id: "join-lines",
+    name: "Join Lines",
+    description: "Use J to join the two lines with a space.",
+    difficulty: "easy",
+    category: "change",
+    initial: `first
+second`,
+    goal: {
+      buffer: "first second",
+      mode: "normal",
+    },
+    hints: [
+      "J joins the current line with the next line.",
+    ],
+    optimalKeystrokes: 1,
+    supportedCommands: ["J"],
+  },
+  {
+    id: "indent-line",
+    name: "Indent A Line",
+    description: "Select the second line and indent it.",
+    difficulty: "easy",
+    category: "change",
+    initial: `if true:
+print("hi")`,
+    initialSelections: [
+      {
+        anchor: { line: 1, column: 0 },
+        head: { line: 1, column: 0 },
+      },
+    ],
+    goal: {
+      buffer: `if true:
+    print("hi")`,
+      mode: "normal",
+    },
+    hints: [
+      "x selects the current line.",
+      "> indents the selected line.",
+    ],
+    optimalKeystrokes: 2,
+    supportedCommands: ["x", ">"],
+  },
+  {
+    id: "match-inside",
+    name: "Match Inside",
+    description: "Use mi( to select inside parentheses, then change the text.",
+    difficulty: "medium",
+    category: "surround",
+    initial: "function(old) call",
+    initialSelections: [
+      {
+        anchor: { line: 0, column: 9 },
+        head: { line: 0, column: 9 },
+      },
+    ],
+    goal: {
+      buffer: "function(new) call",
+      mode: "normal",
+    },
+    hints: [
+      "m starts a surround/textobject sequence.",
+      "mi( selects the text inside the parentheses.",
+      "After c, type new and press Escape.",
+    ],
+    optimalKeystrokes: 8,
+    supportedCommands: ["m", "c"],
+  },
+  {
+    id: "match-around",
+    name: "Match Around",
+    description: "Use ma[ to select the bracketed expression, then change it.",
+    difficulty: "medium",
+    category: "surround",
+    initial: "data = [old_value]",
+    initialSelections: [
+      {
+        anchor: { line: 0, column: 8 },
+        head: { line: 0, column: 8 },
+      },
+    ],
+    goal: {
+      buffer: "data = new_value",
+      mode: "normal",
+    },
+    hints: [
+      "ma[ selects around the brackets, including the brackets.",
+      "Use c to replace the whole selection.",
+    ],
+    optimalKeystrokes: 14,
+    supportedCommands: ["m", "c"],
+  },
+  {
+    id: "add-surround",
+    name: "Add Surround",
+    description: "Use ms\" to wrap the existing selection in double quotes.",
+    difficulty: "medium",
+    category: "surround",
+    initial: "const variable = value",
+    initialSelections: [
+      {
+        anchor: { line: 0, column: 6 },
+        head: { line: 0, column: 13 },
+      },
+    ],
+    goal: {
+      buffer: `const "variable" = value`,
+      mode: "normal",
+    },
+    hints: [
+      "The word is already selected.",
+      "Use ms\" to add the surround.",
+    ],
+    optimalKeystrokes: 3,
+    supportedCommands: ["m"],
+  },
+  {
+    id: "multiple-cursors",
+    name: "Multiple Cursors",
+    description: "Use C and c to rename foo to bar on every line.",
+    difficulty: "hard",
+    category: "multicursor",
     initial: `foo = 1
 foo = 2
 foo = 3`,
-    target: `bar = 1
+    initialSelections: [
+      {
+        anchor: { line: 0, column: 0 },
+        head: { line: 0, column: 2 },
+      },
+    ],
+    goal: {
+      buffer: `bar = 1
 bar = 2
 bar = 3`,
+      mode: "normal",
+    },
     hints: [
-      'Select "foo" on the first line',
-      'Use C to copy the selection to the next line',
-      'Use c to change all selections at once',
-    ],
-    optimalKeystrokes: 9,
-  },
-  {
-    id: 'split-selection',
-    name: 'Split Selection',
-    description: 'Use s to split selections by regex pattern.',
-    difficulty: 'hard',
-    category: 'multicursor',
-    initial: 'apple, banana, cherry',
-    target: 'APPLE, BANANA, CHERRY',
-    hints: [
-      'Select the entire line with x',
-      'Use s to split by comma',
-      'Then use ~ to switch case on all selections',
-    ],
-    optimalKeystrokes: 6,
-  },
-  {
-    id: 'find-and-select',
-    name: 'Find and Select',
-    description: 'Use f and t for efficient navigation and selection.',
-    difficulty: 'medium',
-    category: 'movement',
-    initial: 'key=value,key=other',
-    target: 'key=VALUE,key=OTHER',
-    hints: [
-      'Use f= to find the next =',
-      'Use l to move right and select',
-      'Use C to add cursor to next line',
-    ],
-    optimalKeystrokes: 14,
-  },
-  {
-    id: 'join-lines',
-    name: 'Join Lines',
-    description: 'Use J to join lines together.',
-    difficulty: 'easy',
-    category: 'change',
-    initial: `first
-second`,
-    target: 'first second',
-    hints: [
-      'Use J to join the current line with the next',
-      'This combines lines with a space',
-    ],
-    optimalKeystrokes: 1,
-  },
-  {
-    id: 'indent-code',
-    name: 'Indent Selection',
-    description: 'Use > and < to indent and unindent.',
-    difficulty: 'easy',
-    category: 'change',
-    initial: `if true:
-print("indented")`,
-    target: `if true:
-    print("indented")`,
-    hints: [
-      'Select the line to indent',
-      'Use > to indent',
-      'Use < to unindent',
-    ],
-    optimalKeystrokes: 4,
-  },
-  {
-    id: 'yank-paste',
-    name: 'Yank and Paste',
-    description: 'Use y and p for copy and paste.',
-    difficulty: 'easy',
-    category: 'change',
-    initial: 'copy THIS text',
-    target: 'copy THIS text THIS',
-    hints: [
-      'Select the text to copy',
-      'Use y to yank (copy)',
-      'Use p to paste after cursor',
+      "The first foo is already selected.",
+      "C copies that selection to the next line.",
+      "After all selections are present, use c, type bar, then Escape.",
     ],
     optimalKeystrokes: 7,
+    supportedCommands: ["C", "c"],
   },
   {
-    id: 'collapse-selection',
-    name: 'Collapse Selection',
-    description: 'Use ; to collapse selection to a single cursor.',
-    difficulty: 'easy',
-    category: 'selection',
-    initial: 'select and then collapse',
-    target: 'select',
+    id: "regex-select",
+    name: "Regex Select",
+    description: "Use % and sfoo to select both foo matches, then change them.",
+    difficulty: "hard",
+    category: "multicursor",
+    initial: "foo, bar, foo",
+    goal: {
+      buffer: "baz, bar, baz",
+      mode: "normal",
+    },
     hints: [
-      'First select a word',
-      'Use ; to collapse to cursor',
-      'Then you can continue editing',
+      "% selects the entire document.",
+      "s opens a regex prompt. Type foo and press Enter.",
+      "Use c to replace all matches at once.",
     ],
-    optimalKeystrokes: 3,
-  },
-  {
-    id: 'undo-redo',
-    name: 'Undo and Redo',
-    description: 'Use u and U for undo/redo.',
-    difficulty: 'easy',
-    category: 'change',
-    initial: 'correct',
-    target: 'correct',
-    hints: [
-      'Use u to undo',
-      'Use U to redo',
-      'Practice making and undoing changes',
-    ],
-    optimalKeystrokes: 0,
+    optimalKeystrokes: 11,
+    supportedCommands: ["%", "s", "c"],
   },
 ];
 
+export const challenges = validateChallenges(rawChallenges);
+
 export function getChallengeById(id: string): Challenge | undefined {
-  return challenges.find(c => c.id === id);
+  return challenges.find((challenge) => challenge.id === id);
 }
 
-export function getChallengesByCategory(category: Challenge['category']): Challenge[] {
-  return challenges.filter(c => c.category === category);
+export function getChallengesByCategory(category: Challenge["category"]): Challenge[] {
+  return challenges.filter((challenge) => challenge.category === category);
 }
 
-export function getAllCategories(): Challenge['category'][] {
-  return ['movement', 'selection', 'change', 'surround', 'multicursor'];
+export function getAllCategories(): Challenge["category"][] {
+  return ["movement", "selection", "change", "surround", "multicursor"];
 }
